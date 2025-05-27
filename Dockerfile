@@ -1,21 +1,23 @@
 # syntax=docker/dockerfile:1
 
-# Build stage with necessary dependencies
+# Build stage
 FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS builder
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN apk add --no-cache git gcc musl-dev
+RUN apk add --no-cache git
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o /output/hello .
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /output/app .
 
 # Final images
 FROM alpine:3.18 AS linux
-COPY --from=builder /output/hello /hello
-CMD ["/hello"]
+COPY --from=builder /output/app /app
+CMD ["/app"]
 
 FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS windows
-COPY --from=builder /output/hello.exe /hello.exe
-CMD ["hello.exe"]
+COPY --from=builder /output/app /app.exe
+CMD ["app.exe"]
 
 FROM ${TARGETOS} AS final

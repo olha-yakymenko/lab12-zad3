@@ -6,6 +6,5 @@ import (
 )
 
 func main() {
-	fmt.Printf("Hello from %s/%s!\n", runtime.GOOS, runtime.GOARCH)
-	fmt.Println("This application runs in both Linux and Windows containers!")
+	fmt.Printf("Hello from %s/%s!\n", runtime.GOOS, runtime.GARCH)
 }
