@@ -20,25 +20,16 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push linux/amd64 image
+      - name: Build and push multiarch Linux images
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: olhaya/os-greeter:linux-amd64
-          platforms: linux/amd64
-          build-args: |
-            BASE_IMAGE=python:3.12-slim
-
-      - name: Build and push linux/arm64 image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: olhaya/os-greeter:linux-arm64
-          platforms: linux/arm64
+          tags: |
+            olhaya/os-greeter:linux-amd64
+            olhaya/os-greeter:linux-arm64
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
 
