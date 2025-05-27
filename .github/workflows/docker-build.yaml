@@ -5,40 +5,17 @@ on:
     branches: ["main"]
 
 env:
-  REGISTRY: docker.io
   IMAGE_NAME: olhaya/hello-app
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "linux-amd64"
-            platform: "linux/amd64"
-            goos: "linux"
-            goarch: "amd64"
-          - name: "linux-arm64"
-            platform: "linux/arm64"
-            goos: "linux"
-            goarch: "arm64"
-          - name: "windows-amd64"
-            platform: "windows/amd64"
-            goos: "windows"
-            goarch: "amd64"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -50,11 +27,9 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64,windows/amd64
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.IMAGE_NAME }}:latest
           build-args: |
-            TARGETOS=${{ matrix.goos }}
-            TARGETARCH=${{ matrix.goarch }}
+            TARGETOS=linux
+            TARGETARCH=amd64
