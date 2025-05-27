@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Build and push image
+  linux:
+    name: Build Linux images
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,11 +20,51 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push multiarch image (Linux only due to GitHub limitations)
+      - name: Build and push Linux images
         uses: docker/build-push-action@v5
         with:
+          context: .
+          file: ./Dockerfile
           push: true
-          tags: olhaya/os-greeter:latest
+          tags: olhaya/os-greeter:linux
           platforms: linux/amd64,linux/arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
+
+  windows:
+    name: Build Windows image
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push Windows image
+        run: |
+          docker build -f Dockerfile `
+            --build-arg BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022 `
+            -t olhaya/os-greeter:windows `
+            .
+          docker push olhaya/os-greeter:windows
+
+  manifest:
+    name: Create and push manifest
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Create and push multiarch manifest
+        run: |
+          docker manifest create olhaya/os-greeter:latest \
+            --amend olhaya/os-greeter:linux \
+            --amend olhaya/os-greeter:windows
+          docker manifest push olhaya/os-greeter:latest
