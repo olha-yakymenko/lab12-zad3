@@ -9,10 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: 
-          - linux/amd64
-          - linux/arm64
-          - windows/amd64
+        include:
+          - platform: "linux/amd64"
+            os: "linux"
+            arch: "amd64"
+          - platform: "linux/arm64"
+            os: "linux"
+            arch: "arm64"
+          - platform: "windows/amd64"
+            os: "windows"
+            arch: "amd64"
 
     steps:
       - name: Checkout code
@@ -37,5 +43,5 @@ jobs:
             olhaya/hello-app:latest
             olhaya/hello-app:${{ github.sha }}
           build-args: |
-            TARGETOS=${{ matrix.platform.split('/')[0] }}
-            TARGETARCH=${{ matrix.platform.split('/')[1] }}
+            TARGETOS=${{ matrix.os }}
+            TARGETARCH=${{ matrix.arch }}
