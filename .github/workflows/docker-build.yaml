@@ -1,0 +1,41 @@
+name: Build Multi-Arch Docker Image
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: 
+          - linux/amd64
+          - linux/arm64
+          - windows/amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: |
+            olhaya/hello-app:latest
+            olhaya/hello-app:${{ github.sha }}
+          build-args: |
+            TARGETOS=${{ matrix.platform.split('/')[0] }}
+            TARGETARCH=${{ matrix.platform.split('/')[1] }}
