@@ -26,10 +26,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             olhaya/os-greeter:linux-amd64
             olhaya/os-greeter:linux-arm64
-          platforms: linux/amd64,linux/arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
 
@@ -69,6 +69,6 @@ jobs:
           docker manifest create olhaya/os-greeter:latest \
             --amend olhaya/os-greeter:linux-amd64 \
             --amend olhaya/os-greeter:linux-arm64 \
-            --amend olhaya/os-greeter:windows-amd64
+            --amend olhaya/os-greeter:windows-amd64 || true
 
-          docker manifest push olhaya/os-greeter:latest
+          docker manifest push olhaya/os-greeter:latest || true
