@@ -8,3 +8,4 @@ FROM ${BASE_IMAGE} AS base
 COPY main.py /app/main.py
 
 CMD ["python", "/app/main.py"]
+
