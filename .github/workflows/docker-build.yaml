@@ -20,14 +20,25 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push Linux images
+      - name: Build and push linux/amd64 image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: olhaya/os-greeter:linux
-          platforms: linux/amd64,linux/arm64
+          tags: olhaya/os-greeter:linux-amd64
+          platforms: linux/amd64
+          build-args: |
+            BASE_IMAGE=python:3.12-slim
+
+      - name: Build and push linux/arm64 image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: olhaya/os-greeter:linux-arm64
+          platforms: linux/arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
 
@@ -47,12 +58,12 @@ jobs:
         run: |
           docker build -f Dockerfile `
             --build-arg BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022 `
-            -t olhaya/os-greeter:windows `
+            -t olhaya/os-greeter:windows-amd64 `
             .
-          docker push olhaya/os-greeter:windows
+          docker push olhaya/os-greeter:windows-amd64
 
   manifest:
-    name: Create and push manifest
+    name: Create and push multiarch manifest
     needs: [linux, windows]
     runs-on: ubuntu-latest
     steps:
@@ -62,9 +73,11 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Create and push multiarch manifest
+      - name: Create and push manifest
         run: |
           docker manifest create olhaya/os-greeter:latest \
-            --amend olhaya/os-greeter:linux \
-            --amend olhaya/os-greeter:windows
+            --amend olhaya/os-greeter:linux-amd64 \
+            --amend olhaya/os-greeter:linux-arm64 \
+            --amend olhaya/os-greeter:windows-amd64
+
           docker manifest push olhaya/os-greeter:latest
