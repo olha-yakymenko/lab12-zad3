@@ -1,26 +1,39 @@
 # syntax=docker/dockerfile:1
 
-# Build stage
+##########################
+# Etap 1: Budowanie binarki
+##########################
 FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS builder
+
 WORKDIR /app
 COPY . .
+
 RUN apk add --no-cache git
+
+# Argumenty platformy
 ARG TARGETOS
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /hello .
 
-# Final images
-FROM alpine:3.18 AS linux-amd64
-COPY --from=builder /hello /hello
-CMD ["/hello"]
+# Ustawienia środowiska Go
+ENV CGO_ENABLED=0 \
+    GOOS=$TARGETOS \
+    GOARCH=$TARGETARCH
 
-FROM alpine:3.18 AS linux-arm64
-COPY --from=builder /hello /hello
-CMD ["/hello"]
+# Kompilacja binarki Go
+RUN go build -o /out/hello .
 
-FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS windows-amd64
-COPY --from=builder /hello /hello.exe
-CMD ["hello.exe"]
+##############################
+# Etap 2: Finalny obraz (Linux)
+##############################
+FROM alpine:3.18 AS linux
 
-# Select final image based on target platform
-FROM ${TARGETOS}-${TARGETARCH} AS final
+COPY --from=builder /out/hello /hello
+ENTRYPOINT ["/hello"]
+
+###################################
+# Etap 2: Finalny obraz (Windows)
+###################################
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS windows
+
+COPY --from=builder /out/hello /hello.exe
+ENTRYPOINT ["hello.exe"]

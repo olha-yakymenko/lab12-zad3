@@ -17,15 +17,15 @@ jobs:
           - platform: "linux/amd64"
             os: "linux"
             arch: "amd64"
-            base_image: "alpine:3.18"
+            final_stage: "linux"
           - platform: "linux/arm64"
             os: "linux"
             arch: "arm64"
-            base_image: "alpine:3.18"
+            final_stage: "linux"
           - platform: "windows/amd64"
             os: "windows"
             arch: "amd64"
-            base_image: "mcr.microsoft.com/windows/nanoserver:ltsc2022"
+            final_stage: "windows"
 
     steps:
       - name: Checkout code
@@ -45,13 +45,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
           context: .
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.IMAGE_NAME }}:${{ matrix.arch }}
           build-args: |
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
+          target: ${{ matrix.final_stage }}
