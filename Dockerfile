@@ -1,22 +1,23 @@
 # syntax=docker/dockerfile:1
 
-# Etap budowania (wspólny dla Linux/Windows)
+# Build stage
 FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS build
 WORKDIR /app
 COPY main.go .
+RUN apk add --no-cache git
 ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o hello .
 
-# Etap uruchomieniowy (Linux)
+# Final stage - Linux
 FROM alpine:3.18 AS linux
 COPY --from=build /app/hello /hello
 CMD ["/hello"]
 
-# Etap uruchomieniowy (Windows)
+# Final stage - Windows
 FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS windows
 COPY --from=build /app/hello.exe /hello.exe
 CMD ["hello.exe"]
 
-# Wybór etapu w zależności od systemu docelowego
+# Select final image based on target
 FROM ${TARGETOS} AS final

@@ -4,25 +4,35 @@ on:
   push:
     branches: ["main"]
 
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: olhaya/hello-app
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - platform: "linux/amd64"
-            os: "linux"
-            arch: "amd64"
-          - platform: "linux/arm64"
-            os: "linux"
-            arch: "arm64"
-          - platform: "windows/amd64"
-            os: "windows"
-            arch: "amd64"
+          - platform: linux/amd64
+            os: linux
+            arch: amd64
+            dockerfile: Dockerfile
+          - platform: linux/arm64
+            os: linux
+            arch: arm64
+            dockerfile: Dockerfile
+          - platform: windows/amd64
+            os: windows
+            arch: amd64
+            dockerfile: Dockerfile
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -37,11 +47,12 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            olhaya/hello-app:latest
-            olhaya/hello-app:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           build-args: |
             TARGETOS=${{ matrix.os }}
             TARGETARCH=${{ matrix.arch }}
