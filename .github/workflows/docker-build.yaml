@@ -30,7 +30,6 @@ jobs:
           tags: olhaya/os-greeter:linux
           build-args: |
             BASE_IMAGE=python:3.12-slim
-          cache: false
 
   windows:
     name: Build Windows image
