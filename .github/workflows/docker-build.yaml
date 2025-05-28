@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  linux:
-    name: Build Linux images
+  build-linux:
+    name: Build and push Linux multiarch image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,21 +20,20 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push multiarch Linux images
+      - name: Build and push Linux multiarch image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
-          push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-            olhaya/os-greeter:linux-amd64
-            olhaya/os-greeter:linux-arm64
+          push: true
+          tags: olhaya/os-greeter:linux
+
           build-args: |
             BASE_IMAGE=python:3.12-slim
 
-  windows:
-    name: Build Windows image
+  build-windows:
+    name: Build and push Windows image
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -46,16 +45,19 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Windows image
-        run: |
-          docker build -f Dockerfile `
-            --build-arg BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022 `
-            -t olhaya/os-greeter:windows-amd64 `
-            .
-          docker push olhaya/os-greeter:windows-amd64
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: olhaya/os-greeter:windows-amd64
+          platforms: windows/amd64
+          build-args: |
+            BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 
   manifest:
     name: Create and push multiarch manifest
-    needs: [linux, windows]
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Login to DockerHub
@@ -67,8 +69,7 @@ jobs:
       - name: Create and push manifest
         run: |
           docker manifest create olhaya/os-greeter:latest \
-            --amend olhaya/os-greeter:linux-amd64 \
-            --amend olhaya/os-greeter:linux-arm64 \
-            --amend olhaya/os-greeter:windows-amd64 || true
+            --amend olhaya/os-greeter:linux \
+            --amend olhaya/os-greeter:windows-amd64
 
-          docker manifest push olhaya/os-greeter:latest || true
+          docker manifest push olhaya/os-greeter:latest
