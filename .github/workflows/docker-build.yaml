@@ -48,7 +48,7 @@ jobs:
       - name: Build and push Windows image
         run: |
           docker build -f Dockerfile `
-            --build-arg BASE_IMAGE=mcr.microsoft.com/windows/python:3.12 `
+            --build-arg BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022 `
             -t olhaya/os-greeter:windows-amd64 `
             .
           docker push olhaya/os-greeter:windows-amd64
