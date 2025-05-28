@@ -62,10 +62,16 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Create and push manifest
+      - name: Create manifest
         run: |
           docker manifest create olhaya/os-greeter:latest \
             --amend olhaya/os-greeter:linux \
-            --amend olhaya/os-greeter:windows-amd64 || true
+            --amend olhaya/os-greeter:windows-amd64
 
-          docker manifest push olhaya/os-greeter:latest || true
+      - name: Push manifest
+        run: |
+          docker manifest push olhaya/os-greeter:latest
+
+      - name: Inspect manifest
+        run: |
+          docker manifest inspect olhaya/os-greeter:latest
