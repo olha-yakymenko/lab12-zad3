@@ -20,20 +20,19 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build AMD64 image (no push yet)
+      - name: Build AMD64 image (load locally)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64
-          load: true 
+          load: true                # buduje i ładuje obraz do dockera lokalnego runnera (bez automatycznego push)
           tags: olhaya/os-greeter:linux-amd64
           build-args: |
             BASE_IMAGE=python:3.12-slim
 
-      - name: Push manually
+      - name: Push AMD64 image
         run: docker push olhaya/os-greeter:linux-amd64
-
 
   linux_arm64:
     name: Build and push Linux ARM64 image
@@ -50,13 +49,13 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push ARM64 image
+      - name: Build and push ARM64 image (push automaticzny)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/arm64
-          push: true
+          push: true                # tu push odbywa się automatycznie
           tags: olhaya/os-greeter:linux-arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
@@ -100,9 +99,7 @@ jobs:
             --amend olhaya/os-greeter:windows-amd64
 
       - name: Push manifest
-        run: |
-          docker manifest push olhaya/os-greeter:latest
+        run: docker manifest push olhaya/os-greeter:latest
 
       - name: Inspect manifest
-        run: |
-          docker manifest inspect olhaya/os-greeter:latest
+        run: docker manifest inspect olhaya/os-greeter:latest
