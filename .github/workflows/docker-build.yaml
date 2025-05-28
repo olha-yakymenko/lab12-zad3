@@ -97,10 +97,12 @@ jobs:
 
       - name: Create manifest
         run: |
+          docker manifest rm olhaya/os-greeter:latest || true
           docker manifest create olhaya/os-greeter:latest \
             --amend olhaya/os-greeter:linux-amd64 \
             --amend olhaya/os-greeter:linux-arm64 \
             --amend olhaya/os-greeter:windows-amd64
+
 
       - name: Push manifest
         run: docker manifest push olhaya/os-greeter:latest
