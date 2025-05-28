@@ -49,16 +49,20 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push ARM64 image (push automaticzny)
+      - name: Build ARM64 image (load locally)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/arm64
-          push: true                # tu push odbywa się automatycznie
+          load: true
           tags: olhaya/os-greeter:linux-arm64
           build-args: |
             BASE_IMAGE=python:3.12-slim
+
+      - name: Push ARM64 image
+        run: docker push olhaya/os-greeter:linux-arm64
+
 
   windows:
     name: Build and push Windows image
